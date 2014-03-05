@@ -66,3 +66,36 @@ get_root(["test" | Tail], _Path) ->
     lists:reverse(Tail);
 get_root([_ | Tail], Path) ->
     get_root(Tail, Path).
+
+rebar_lib_dirs(Path) ->
+    FileName = filename:basename(Path),
+    %% We can't match on string tails but we can on heads.
+    case lists:reverse(FileName) of
+        %% *.config
+        "gifnoc." ++ _ ->
+            config_lib_dirs(Path)
+    end.
+
+config_lib_dirs(Path) ->
+    {ok, Config} = file:consult(Path),
+    Root = filename:dirname(Path),
+    get_lib_dirs(Root, Config) ++ get_sub_dirs(Root, Config).
+
+get_lib_dirs(Root, Config) ->
+    case lists:keyfind(lib_dirs, 1, Config) of
+        false -> [];
+        {lib_dirs, LibDirs} ->
+            [Root ++ "/" ++ LibDir || LibDir <- LibDirs]
+    end.
+
+get_sub_dirs(Root, Config) ->
+    case lists:keyfind(sub_dirs, 1, Config) of
+        false -> [];
+        {sub_dirs, SubDirs} ->
+            D = [[filename:join([Root, SubDir]),
+                  filename:join([Root, SubDir, "include"]),
+                  filename:join([Root, SubDir, "deps"]),
+                  filename:join([Root, SubDir, "lib"])]
+                 || SubDir <- SubDirs],
+            lists:append(D)
+    end.
