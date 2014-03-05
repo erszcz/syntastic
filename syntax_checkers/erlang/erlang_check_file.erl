@@ -58,7 +58,6 @@ rebar_lib_dirs(Path) ->
                            file:consult(Path)
                    end,
     get_dep_dirs(Root, Config) ++
-    get_lib_dirs(Root, Config) ++
     get_sub_dirs(Root, Config).
 
 get_dep_dirs(Root, Config) ->
@@ -67,12 +66,6 @@ get_dep_dirs(Root, Config) ->
         {deps, Deps} ->
     end.
 
-get_lib_dirs(Root, Config) ->
-    case lists:keyfind(lib_dirs, 1, Config) of
-        false -> [];
-        {lib_dirs, LibDirs} ->
-            [Root ++ "/" ++ LibDir || LibDir <- LibDirs]
-    end.
 
 get_sub_dirs(Root, Config) ->
     case lists:keyfind(sub_dirs, 1, Config) of
