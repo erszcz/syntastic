@@ -51,8 +51,7 @@ compile(FileName, LibDirs) ->
                             {i, filename:join(Root, "include")},
                             {i, filename:join(Root, "deps")},
                             {i, filename:join(Root, "apps")},
-                            {i, filename:join(Root, "lib")}
-                        ]).
+                            {i, filename:join(Root, "lib")}]).
 
 get_root(Dir) ->
     Path = filename:split(filename:absname(Dir)),
