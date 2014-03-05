@@ -68,18 +68,19 @@ get_root([_ | Tail], Path) ->
     get_root(Tail, Path).
 
 rebar_lib_dirs(Path) ->
+    Root = filename:dirname(Path),
     FileName = filename:basename(Path),
     %% We can't match on string tails but we can on heads.
-    case lists:reverse(FileName) of
-        %% *.config
-        "gifnoc." ++ _ ->
-            config_lib_dirs(Path)
-    end.
-
-config_lib_dirs(Path) ->
-    {ok, Config} = file:consult(Path),
-    Root = filename:dirname(Path),
-    get_lib_dirs(Root, Config) ++ get_sub_dirs(Root, Config).
+    {ok, Config} = case lists:reverse(FileName) of
+                       %% *.config.script
+                       "tpircs.gifnoc." ++ _ ->
+                           file:script(Path);
+                       %% *.config
+                       "gifnoc." ++ _ ->
+                           file:consult(Path)
+                   end,
+    get_lib_dirs(Root, Config) ++
+    get_sub_dirs(Root, Config).
 
 get_lib_dirs(Root, Config) ->
     case lists:keyfind(lib_dirs, 1, Config) of
