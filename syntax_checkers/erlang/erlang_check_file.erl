@@ -7,30 +7,38 @@
 -export([main/1]).
 
 main([FileName]) ->
-    LibDirs = filelib:wildcard("{lib,deps}/*/ebin"),
+    LibDirs = filelib:wildcard("{lib,deps}/*/{ebin,include}"),
     compile(FileName, LibDirs);
 
-main([FileName, "-rebar", Path, LibDirs]) ->
-    NewLibDirs = LibDirs ++ rebar_lib_dirs(Path),
-    io:format("~p~n", [NewLibDirs]),
-    compile(FileName, NewLibDirs);
+main([FileName, "-rebar", Path, _LibDirs]) ->
+    {EbinDirs, IncludeDirs} = rebar_lib_dirs(Path),
+    compile(FileName, EbinDirs, IncludeDirs);
 
 main([FileName, LibDirs]) ->
     compile(FileName, LibDirs).
 
+compile(FileName, EbinDirs, IncludeDirs) ->
+    ok = code:add_pathsa(EbinDirs),
+    compile:file(FileName,
+                 [warn_obsolete_guard,
+                  warn_unused_import,
+                  warn_shadow_vars,
+                  warn_export_vars,
+                  strong_validation,
+                  report] ++
+                 [{i, I} || I <- IncludeDirs]).
+
 compile(FileName, LibDirs) ->
     Root = get_root(filename:dirname(FileName)),
     ok = code:add_pathsa(LibDirs),
-    compile:file(FileName, [warn_obsolete_guard,
-                            warn_unused_import,
-                            warn_shadow_vars,
-                            warn_export_vars,
-                            strong_validation,
-                            report,
-                            {i, filename:join(Root, "include")},
-                            {i, filename:join(Root, "deps")},
-                            {i, filename:join(Root, "apps")},
-                            {i, filename:join(Root, "lib")}]).
+    compile:file(FileName,
+                 [warn_obsolete_guard,
+                  warn_unused_import,
+                  warn_shadow_vars,
+                  warn_export_vars,
+                  strong_validation,
+                  report] ++
+                 [{i, filename:join(Root, I)} || I <- LibDirs]).
 
 get_root(Dir) ->
     Path = filename:split(filename:absname(Dir)),
