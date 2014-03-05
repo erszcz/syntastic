@@ -1,4 +1,9 @@
 #!/usr/bin/env escript
+
+%% For debugging from Erlang shell.
+%-module(erlang_check_file).
+%-compile([export_all]).
+
 -export([main/1]).
 
 main([FileName]) ->
