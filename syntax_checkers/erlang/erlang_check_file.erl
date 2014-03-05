@@ -78,8 +78,15 @@ rebar_lib_dirs(Path) ->
                        "gifnoc." ++ _ ->
                            file:consult(Path)
                    end,
+    get_dep_dirs(Root, Config) ++
     get_lib_dirs(Root, Config) ++
     get_sub_dirs(Root, Config).
+
+get_dep_dirs(Root, Config) ->
+    case lists:keyfind(deps, 1, Config) of
+        false -> [];
+        {deps, Deps} ->
+    end.
 
 get_lib_dirs(Root, Config) ->
     case lists:keyfind(lib_dirs, 1, Config) of
