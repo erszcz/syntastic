@@ -1,8 +1,8 @@
-#!/usr/bin/env escript
+%#!/usr/bin/env escript
 
 %% For debugging from Erlang shell.
-%-module(erlang_check_file).
-%-compile([export_all]).
+-module(erlang_check_file).
+-compile([export_all]).
 
 -export([main/1]).
 
@@ -65,24 +65,40 @@ rebar_lib_dirs(Path) ->
                        "gifnoc." ++ _ ->
                            file:consult(Path)
                    end,
-    get_dep_dirs(Root, Config) ++
-    get_sub_dirs(Root, Config).
+    group_by_ebin_include(get_dep_dirs(Root, Config) ++
+                          get_sub_dirs(Root, Config)).
+
+group_by_ebin_include(Dirs) ->
+    lists:foldl(fun ebin_or_include/2, {[], []}, Dirs).
+
+ebin_or_include({ebin, Dir}, {Ebin, Include}) ->
+    {[Dir | Ebin], Include};
+ebin_or_include({include, Dir}, {Ebin, Include}) ->
+    {Ebin, [Dir | Include]}.
 
 get_dep_dirs(Root, Config) ->
     case lists:keyfind(deps, 1, Config) of
         false -> [];
         {deps, Deps} ->
+            D = [[{ebin, filename:join([Root, dep_name(Dep), "ebin"])},
+                  {include, filename:join([Root, dep_name(Dep), "include"])},
+                  {include, filename:join([Root, dep_name(Dep), "src"])}]
+                 || Dep <- Deps],
+            lists:append(D)
     end.
 
+dep_name({DepName, _, _}) when is_atom(DepName) ->
+    atom_to_list(DepName);
+dep_name({DepName, _, _}) ->
+    DepName.
 
 get_sub_dirs(Root, Config) ->
     case lists:keyfind(sub_dirs, 1, Config) of
         false -> [];
         {sub_dirs, SubDirs} ->
-            D = [[filename:join([Root, SubDir]),
-                  filename:join([Root, SubDir, "include"]),
-                  filename:join([Root, SubDir, "deps"]),
-                  filename:join([Root, SubDir, "lib"])]
+            D = [[{ebin, filename:join([Root, SubDir, "ebin"])},
+                  {include, filename:join([Root, SubDir, "include"])},
+                  {include, filename:join([Root, SubDir, "src"])}]
                  || SubDir <- SubDirs],
             lists:append(D)
     end.
