@@ -11,30 +11,9 @@ main([FileName]) ->
     compile(FileName, LibDirs);
 
 main([FileName, "-rebar", Path, LibDirs]) ->
-    {ok, L} = file:consult(Path),
-    P = dict:from_list(L),
-    Root = filename:dirname(Path),
-
-    Lib1 = case dict:find(lib_dirs, P) of
-             {ok, X} -> lists:map(fun(Sub) -> Root ++ "/" ++ Sub end, X);
-             _ -> []
-           end,
-
-    Lib2 = case dict:find(sub_dirs, P) of
-             {ok, Y} -> lists:foldl(
-                          fun(Sub,Sofar) ->
-                              Sofar ++ [
-                                        Root ++ "/" ++ Sub,
-                                        Root ++ "/" ++ Sub ++ "/include",
-                                        Root ++ "/" ++ Sub ++ "/deps",
-                                        Root ++ "/" ++ Sub ++ "/lib"
-                                       ] end, [], Y);
-             _ -> []
-           end,
-
-    LibDirs1 = LibDirs ++ Lib1 ++ Lib2,
-    %io:format("~p~n", [LibDirs1]),
-    compile(FileName, LibDirs1);
+    NewLibDirs = LibDirs ++ rebar_lib_dirs(Path),
+    io:format("~p~n", [NewLibDirs]),
+    compile(FileName, NewLibDirs);
 
 main([FileName, LibDirs]) ->
     compile(FileName, LibDirs).
