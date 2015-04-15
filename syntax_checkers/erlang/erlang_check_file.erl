@@ -89,7 +89,7 @@ get_dep_dirs(Root, Config) ->
 
 dep_name({DepName, _, _}) when is_atom(DepName) ->
     atom_to_list(DepName);
-dep_name({DepName, _, _}) ->
+dep_name({DepName, _, _}) when is_list(DepName) ->
     DepName.
 
 get_sub_dirs(Root, Config) ->
